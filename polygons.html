@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Polygons — Building Geometry from Numbers</title>
+<style>
+  body {
+    background: #0a0a0a;
+    color: #e0e0e0;
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+  }
+  h1 {
+    font-size: 24px;
+    letter-spacing: 4px;
+    margin-bottom: 40px;
+  }
+  .polygon-row {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 800px;
+  }
+  .polygon-svg {
+    flex-shrink: 0;
+  }
+  .polygon-label {
+    margin-left: 40px;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .n-label {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  .meaning {
+    color: #888;
+  }
+  .quran {
+    color: #aaa;
+    font-style: italic;
+  }
+  hr {
+    width: 100%;
+    max-width: 800px;
+    border: none;
+    border-top: 1px solid #333;
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>THE POLYGONS</h1>
+
+<div id="polygons"></div>
+
+<script>
+const polygons = [
+  {
+    n: 0,
+    name: "the void",
+    meaning: "nothing. no point. no space. 0/0. before Kun."
+  },
+  {
+    n: 1,
+    name: "the point",
+    meaning: "existence. Allah. Ahad. no dimension. just IS.",
+    quran: "Say: He is Allah, the One — 112:1"
+  },
+  {
+    n: 2,
+    name: "the line",
+    meaning: "the first choice. toward origin or away. Adam and Hawa. the pair. every line divides.",
+    quran: "And of everything We created pairs — 51:49"
+  },
+  {
+    n: 3,
+    name: "the triangle",
+    meaning: "first enclosed space. inside and outside. seen and unseen separated.",
+    quran: "He is Allah, the Creator, the Originator, the Fashioner — 59:24"
+  },
+  {
+    n: 4,
+    name: "the square",
+    meaning: "the box. the Kaaba. four states. 1/1, 1/0, 0/1, 0/0. four directions. stability.",
+    quran: "His throne was upon the water — 11:7"
+  },
+  {
+    n: 5,
+    name: "the pentagon",
+    meaning: "the irrational enters. the golden ratio. 1.618... beauty that never resolves. five pillars. five prayers.",
+    quran: "Established upon five pillars — hadith"
+  },
+  {
+    n: 6,
+    name: "the hexagon",
+    meaning: "perfect tiling. no gaps. self-sustaining. six periods of creation.",
+    quran: "He created the heavens and earth in six periods — 7:54"
+  },
+  {
+    n: 7,
+    name: "the heptagon",
+    meaning: "seven heavens. the prime. cannot be divided. resists reduction. the Mi'raj.",
+    quran: "We have created above you seven pathways — 23:17"
+  },
+  {
+    n: 8,
+    name: "the octagon",
+    meaning: "eight gates of Jannah. each gate a different path to the same place. the dome.",
+    quran: "And the angels will be on its edges, and eight will bear the throne — 69:17"
+  },
+  {
+    n: 9,
+    name: "the nonagon",
+    meaning: "nine months of creation. the womb. Ramadan is the 9th month. 9 x 11 = 99.",
+    quran: "The Quran was revealed in the month of Ramadan — 2:185"
+  },
+  {
+    n: 10,
+    name: "the decagon",
+    meaning: "completion of counting. return to 1 and 0. ten fingers. ten plagues.",
+    quran: "We certainly seized the people of Pharaoh with years of famine — 7:130"
+  },
+  {
+    n: 11,
+    name: "the hendecagon",
+    meaning: "the prime returns. the group that must move as one. cooperation or collapse.",
+    quran: "Hold firmly to the rope of Allah all together and do not become divided — 3:103"
+  },
+  {
+    n: 12,
+    name: "the dodecagon",
+    meaning: "twelve months. the year completes. twelve springs from Musa's rock. the clock.",
+    quran: "Indeed, the number of months with Allah is twelve — 9:36"
+  },
+  {
+    n: 36,
+    name: "approaching the circle",
+    meaning: "Surah Ya-Sin. the heart of the Quran. the polygon softens. corners disappear.",
+    quran: "Ya Sin. By the wise Quran — 36:1-2"
+  },
+  {
+    n: 99,
+    name: "the 99-gon",
+    meaning: "the 99 names. 99 vertices. 99 dimensions. the most complete shape before the infinite.",
+    quran: "And to Allah belong the most beautiful names — 7:180"
+  },
+  {
+    n: Infinity,
+    name: "the circle",
+    meaning: "infinite sides. no corners. no start. no end. the point expanded to contain everything. tawhid.",
+    quran: "He is the First and the Last, the Manifest and the Hidden — 57:3"
+  }
+];
+
+const container = document.getElementById('polygons');
+const size = 150;
+const cx = size / 2;
+const cy = size / 2;
+const r = size / 2 - 15;
+
+polygons.forEach(p => {
+  const row = document.createElement('div');
+  row.className = 'polygon-row';
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", size);
+  svg.setAttribute("height", size);
+  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+  svg.classList.add("polygon-svg");
+
+  // draw the alif — the vertical line through center
+  const alif = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  alif.setAttribute("x1", cx);
+  alif.setAttribute("y1", 5);
+  alif.setAttribute("x2", cx);
+  alif.setAttribute("y2", size - 5);
+  alif.setAttribute("stroke", "#333");
+  alif.setAttribute("stroke-width", "1");
+  alif.setAttribute("stroke-dasharray", "4,4");
+  svg.appendChild(alif);
+
+  if (p.n === 0) {
+    // void — nothing
+  } else if (p.n === 1) {
+    // point
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("cx", cx);
+    dot.setAttribute("cy", cy);
+    dot.setAttribute("r", 4);
+    dot.setAttribute("fill", "#ffffff");
+    svg.appendChild(dot);
+  } else if (p.n === 2) {
+    // line
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", cx);
+    line.setAttribute("y1", cy - r);
+    line.setAttribute("x2", cx);
+    line.setAttribute("y2", cy + r);
+    line.setAttribute("stroke", "#ffffff");
+    line.setAttribute("stroke-width", "2");
+    svg.appendChild(line);
+    // dots at ends
+    [cy - r, cy + r].forEach(y => {
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      dot.setAttribute("cx", cx);
+      dot.setAttribute("cy", y);
+      dot.setAttribute("r", 3);
+      dot.setAttribute("fill", "#ffffff");
+      svg.appendChild(dot);
+    });
+  } else if (p.n === Infinity) {
+    // circle
+    const circ = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circ.setAttribute("cx", cx);
+    circ.setAttribute("cy", cy);
+    circ.setAttribute("r", r);
+    circ.setAttribute("fill", "none");
+    circ.setAttribute("stroke", "#ffffff");
+    circ.setAttribute("stroke-width", "2");
+    svg.appendChild(circ);
+    // center dot
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("cx", cx);
+    dot.setAttribute("cy", cy);
+    dot.setAttribute("r", 3);
+    dot.setAttribute("fill", "#ffffff");
+    svg.appendChild(dot);
+  } else {
+    // polygon
+    const n = p.n;
+    const points = [];
+    for (let i = 0; i < n; i++) {
+      const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      points.push(`${x},${y}`);
+    }
+    const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    polygon.setAttribute("points", points.join(" "));
+    polygon.setAttribute("fill", "none");
+    polygon.setAttribute("stroke", "#ffffff");
+    polygon.setAttribute("stroke-width", "2");
+    svg.appendChild(polygon);
+    // vertex dots
+    for (let i = 0; i < n; i++) {
+      const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      dot.setAttribute("cx", x);
+      dot.setAttribute("cy", y);
+      dot.setAttribute("r", 3);
+      dot.setAttribute("fill", "#ffffff");
+      svg.appendChild(dot);
+    }
+  }
+
+  const label = document.createElement('div');
+  label.className = 'polygon-label';
+  label.innerHTML = `
+    <div class="n-label">n = ${p.n === Infinity ? '∞' : p.n} — ${p.name}</div>
+    <div class="meaning">${p.meaning}</div>
+    ${p.quran ? `<div class="quran">"${p.quran}"</div>` : ''}
+  `;
+
+  row.appendChild(svg);
+  row.appendChild(label);
+  container.appendChild(row);
+
+  const hr = document.createElement('hr');
+  container.appendChild(hr);
+});
+</script>
+
+</body>
+</html>
