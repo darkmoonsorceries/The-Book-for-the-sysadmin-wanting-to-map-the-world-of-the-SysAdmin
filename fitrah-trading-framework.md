@@ -186,6 +186,13 @@ def fitrah_signal(token, price_data):
     # Axiom 1: Check for hifz al-mal (loss-aversion driven oversold)
     drop_speed = measure_drop_speed(price_data)
 
+    # Axiom 7: Detect sabr zones (patience-created structure)
+    sabr_zones = detect_sabr_zones(price_data)
+    sabr_state = sabr_signal(price_data.current, sabr_zones)
+
+    # Axiom 8: Read tawakkul/tadbir ratio at current level
+    conviction = tawakkul_tadbir_ratio(volume_data, price_data)
+
     # Generate signal
     if drop_speed > 2 * average_rise_speed(price_data):
         signal = "BUY"          # Oversold by fitrah-driven panic
@@ -193,6 +200,12 @@ def fitrah_signal(token, price_data):
     elif deviation > threshold and excess > 2.5:
         signal = "SELL"         # Israf + above mizan = fade
         size = "scaled_to_excess"
+    elif sabr_state == "STRONG_SUPPORT" and conviction == "tawakkul":
+        signal = "BUY"          # Strong patience zone + holders firm
+        size = "normal"
+    elif sabr_state == "WEAK_SUPPORT" and conviction == "tadbir":
+        signal = "SELL"         # Weak zone + people exiting
+        size = "conservative"
     elif deviation < -threshold:
         signal = "BUY"          # Below mizan = reversion expected
         size = "normal"
@@ -207,6 +220,160 @@ def fitrah_signal(token, price_data):
 
 ---
 
+## Axiom 7: Sabr (Patience) Creates Structure
+
+**Source:** Quran 2:153 — "O you who have believed, seek help through patience and
+prayer. Indeed, Allah is with the patient."
+
+**Observed in:** Both DOTA and CLANKER charts show a **staircase decline** — not
+smooth drops, but discrete steps down with flat consolidation at each level.
+
+**Market implication:** Humans don't capitulate all at once. Fitrah includes sabr —
+the innate capacity to endure. Holders are patient at each price level, creating
+a temporary floor (a "sabr zone"). When collective patience at that level is
+exhausted, the next step down occurs.
+
+This means:
+- Each plateau/flat zone is measurable by duration
+- The longer the sabr zone, the more significant the breakout (up or down)
+- A bounce from a long sabr zone has higher conviction than a bounce from a short one
+
+**Evidence from observation (Apr 2, 2026):**
+
+CLANKER staircase:
+```
+$26.40 ──────┐
+             │  sabr zone 1 (~6h at $25.60-$26.40)
+$25.60 ──────┤
+             │  sabr zone 2 (~4h at $24.80-$25.20)
+$24.80 ──────┤
+             │  sharp break (patience exhausted)
+$24.11 ──────┘  current sabr zone 3 (building)
+$24.60 ← current price, bouncing within zone 3
+```
+
+DOTA showed the same pattern: spike → staircase down → consolidation at floor.
+
+**Rule:**
+
+```python
+def detect_sabr_zones(price_data, min_duration=10):
+    """
+    Identify consolidation zones where collective patience holds price flat.
+    min_duration: minimum candles to qualify as a sabr zone.
+    """
+    zones = []
+    current_zone_start = 0
+    zone_range_pct = 0.02  # 2% range = "flat enough"
+
+    for i in range(len(price_data)):
+        window = price_data[current_zone_start:i+1]
+        high = max(window)
+        low = min(window)
+        range_pct = (high - low) / low
+
+        if range_pct > zone_range_pct:
+            if (i - current_zone_start) >= min_duration:
+                zones.append({
+                    'start': current_zone_start,
+                    'end': i - 1,
+                    'level': (high + low) / 2,
+                    'duration': i - current_zone_start,
+                    'strength': (i - current_zone_start) / min_duration
+                })
+            current_zone_start = i
+
+    return zones
+
+
+def sabr_signal(price, zones):
+    """
+    Trade based on sabr zone breaks and bounces.
+    """
+    nearest_zone = find_nearest_zone(price, zones)
+
+    if nearest_zone is None:
+        return "NO_SIGNAL"
+
+    distance_to_zone = abs(price - nearest_zone['level']) / nearest_zone['level']
+
+    if distance_to_zone < 0.005:  # Price at a sabr zone
+        if nearest_zone['strength'] > 2:
+            return "STRONG_SUPPORT"   # Long sabr = strong floor
+        else:
+            return "WEAK_SUPPORT"     # Short sabr = may break
+
+    if price < nearest_zone['level'] * 0.98:  # Broke below zone
+        next_zone = find_next_zone_below(price, zones)
+        if next_zone:
+            return f"TARGET_{next_zone['level']}"  # Next sabr zone is target
+        else:
+            return "CAUTION_NO_FLOOR"  # No known support below
+```
+
+## Axiom 8: Tawakkul (Reliance) vs. Tadbir (Planning)
+
+**Source:** Quran 65:3 — "And whoever relies upon Allah — then He is sufficient for
+him." But also Quran 59:18 — "Let every soul look to what it has put forth for
+tomorrow."
+
+**Market implication:** There is a tension in fitrah between trusting the outcome
+(tawakkul) and preparing/planning (tadbir). In markets, this manifests as the
+tension between **holding through drawdowns** and **cutting losses**. Both
+impulses are innate.
+
+**Rule:** This tension means there is always a distribution of behavior — some
+hold, some sell — creating volume patterns at decision points. The ratio of
+tawakkul-holders to tadbir-sellers is readable in the volume:
+
+```python
+def tawakkul_tadbir_ratio(volume_data, price_data):
+    """
+    At support levels: high volume + stable price = tawakkul dominates (hold)
+    At support levels: high volume + falling price = tadbir dominates (sell)
+    """
+    recent_vol = mean(volume_data[-5:])
+    avg_vol = mean(volume_data[-50:])
+    price_change = (price_data[-1] - price_data[-5]) / price_data[-5]
+
+    if recent_vol > 1.5 * avg_vol:
+        if abs(price_change) < 0.01:
+            return "tawakkul"   # People holding firm despite pressure
+        elif price_change < -0.02:
+            return "tadbir"     # People actively exiting, planning
+        else:
+            return "mixed"
+    return "low_conviction"     # Not enough participation to read
+```
+
+---
+
+## Observed Token Log
+
+Tracking real tokens to validate axioms against live data.
+
+### Token 1: DOTA (Defense of the Agents)
+- **Date:** Apr 2, 2026
+- **Price:** $0.0₅4286
+- **Pattern:** Spike-and-decay → staircase down → consolidation at floor
+- **Axioms confirmed:** Mizan (return to equilibrium), Hifz al-Mal (sharp drops),
+  Sabr (staircase structure)
+- **Fitrah signal at observation:** HOLD — price at equilibrium, no excess, low
+  volatility. Wait for sabr zone break.
+
+### Token 2: CLANKER (tokenbot)
+- **Date:** Apr 2, 2026
+- **Price:** $24.60
+- **Pattern:** Three-step staircase decline from $26.40 → bouncing at $24.11 floor
+- **Macro:** Downtrend from $30 (4H chart), $24 acting as strong support
+- **Axioms confirmed:** Sabr (clear staircase with measurable zones), Hifz al-Mal
+  (stepped loss acceptance), Mizan ($24.60 near macro equilibrium on 4H)
+- **Fitrah signal at observation:** CAUTIOUS_LONG — at strong sabr zone, but macro
+  trend is down. If $24 holds and sabr zone 3 extends, strength increases.
+  If $24 breaks, next target unknown (no visible lower zone).
+
+---
+
 ## Why This Holds When Currencies Collapse
 
 Traditional quant models are trained on historical price data denominated in fiat.
@@ -215,12 +382,14 @@ meaningless.
 
 This framework doesn't depend on any currency or historical dataset. It depends on:
 
-1. Humans fear loss more than they desire gain (fitrah)
+1. Humans fear loss more than they desire gain (hifz al-mal)
 2. Excess always corrects (mizan)
 3. Greed overextends and reverts (israf)
 4. Uncertainty causes withdrawal (gharar avoidance)
 5. Contentment preserves gains (shukr/qana'ah)
 6. Corruption self-destructs (fasad)
+7. Patience creates visible structure in price (sabr)
+8. The tension between trust and planning creates readable volume patterns (tawakkul/tadbir)
 
 These are properties of human nature as created. They don't change with the
 currency. Whether people trade in gold, Bitcoin, seashells, or a post-collapse
