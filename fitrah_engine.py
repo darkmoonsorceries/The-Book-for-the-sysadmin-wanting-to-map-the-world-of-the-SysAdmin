@@ -139,9 +139,40 @@ def parse_to_arrays(data: dict) -> dict:
     }
 
 
-def fetch_all_tokens() -> dict:
-    """Fetch price data for all tokens, respecting rate limits."""
+def load_local_data() -> dict:
+    """
+    Load pre-generated synthetic or cached data from price_data/ directory.
+    Falls back to this when API is unavailable.
+    """
     all_data = {}
+    for json_file in DATA_DIR.glob("*_2026.json"):
+        ticker = json_file.stem.replace("_2026", "").upper()
+        try:
+            with open(json_file) as f:
+                raw = json.load(f)
+            if "prices" in raw and len(raw["prices"]) > 10:
+                all_data[ticker] = parse_to_arrays(raw)
+                print(f"  [local] {ticker}: {len(all_data[ticker]['close'])} data points")
+        except Exception as e:
+            print(f"  [local] Failed to load {json_file}: {e}")
+    return all_data
+
+
+def fetch_all_tokens() -> dict:
+    """
+    Fetch price data for all tokens.
+    Strategy: try local data first, then API if needed.
+    """
+    # First, try loading local/synthetic data
+    print("Checking for local data...")
+    all_data = load_local_data()
+
+    if all_data:
+        print(f"Loaded {len(all_data)} tokens from local data.")
+        return all_data
+
+    # Fall back to CoinGecko API
+    print("No local data found. Fetching from CoinGecko API...")
     total = len(TOKENS)
 
     for i, (ticker, coin_id) in enumerate(TOKENS.items()):

@@ -1,0 +1,103 @@
+{
+  "walk_forward": {
+    "DOTA": {
+      "direction_accuracy": 0.5381818181818182,
+      "correlation": 0.20441943884713762,
+      "sharpe": 3.2462678806731096,
+      "test_points": 550
+    },
+    "CLANKER": {
+      "direction_accuracy": 0.6290909090909091,
+      "correlation": 0.3478807177328244,
+      "sharpe": 6.360207040886637,
+      "test_points": 550
+    },
+    "MIZAN_TOKEN": {
+      "direction_accuracy": 0.6272727272727273,
+      "correlation": 0.3707274023364476,
+      "sharpe": 6.697016006533591,
+      "test_points": 550
+    },
+    "HIFZ_TOKEN": {
+      "direction_accuracy": 0.610909090909091,
+      "correlation": 0.3079879380804503,
+      "sharpe": 5.487013353254434,
+      "test_points": 550
+    },
+    "ETH_SIM": {
+      "direction_accuracy": 0.6018181818181818,
+      "correlation": 0.24296487470050587,
+      "sharpe": 4.126124587799188,
+      "test_points": 550
+    },
+    "GHARAR_TOKEN": {
+      "direction_accuracy": 0.49818181818181817,
+      "correlation": 0.12747580931703004,
+      "sharpe": 1.1053901756510172,
+      "test_points": 550
+    },
+    "ISRAF_TOKEN": {
+      "direction_accuracy": 0.5436363636363636,
+      "correlation": 0.10364400128927242,
+      "sharpe": 1.8894919702583306,
+      "test_points": 550
+    },
+    "SABR_TOKEN": {
+      "direction_accuracy": 0.6527272727272727,
+      "correlation": 0.6500633488286722,
+      "sharpe": 8.275372429790405,
+      "test_points": 550
+    }
+  },
+  "cross_token_avg": 0.5883453697434741,
+  "baseline_comparison": {
+    "DOTA": {
+      "Fitrah": 0.6140073723012112,
+      "Random": 0.5118483412322274,
+      "Momentum": 0.4670879410215903,
+      "MeanRev": 0.5329120589784097
+    },
+    "CLANKER": {
+      "Fitrah": 0.6434965771458663,
+      "Random": 0.5097419694576093,
+      "Momentum": 0.4028436018957346,
+      "MeanRev": 0.5971563981042654
+    },
+    "MIZAN_TOKEN": {
+      "Fitrah": 0.6229594523433386,
+      "Random": 0.5013164823591364,
+      "Momentum": 0.49025803054239075,
+      "MeanRev": 0.5097419694576093
+    },
+    "HIFZ_TOKEN": {
+      "Fitrah": 0.6145339652448657,
+      "Random": 0.4728804634017904,
+      "Momentum": 0.4802527646129542,
+      "MeanRev": 0.5197472353870458
+    },
+    "ETH_SIM": {
+      "Fitrah": 0.6197998946814113,
+      "Random": 0.4860452869931543,
+      "Momentum": 0.4707740916271722,
+      "MeanRev": 0.5271195365982095
+    },
+    "GHARAR_TOKEN": {
+      "Fitrah": 0.5839915745129015,
+      "Random": 0.49815692469720907,
+      "Momentum": 0.5302790942601369,
+      "MeanRev": 0.4697209057398631
+    },
+    "ISRAF_TOKEN": {
+      "Fitrah": 0.6224328593996841,
+      "Random": 0.4965771458662454,
+      "Momentum": 0.5297525013164823,
+      "MeanRev": 0.4702474986835176
+    },
+    "SABR_TOKEN": {
+      "Fitrah": 0.7051079515534492,
+      "Random": 0.4892048446550816,
+      "Momentum": 0.34228541337546076,
+      "MeanRev": 0.6577145866245392
+    }
+  }
+}
